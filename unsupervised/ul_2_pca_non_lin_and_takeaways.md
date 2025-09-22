@@ -11,10 +11,62 @@ kernelspec:
   name: python3
 ---
 
-# Further comments on PCA
+# Final comments on PCA
+
+## PCA in practice
+In these notes we have presented PCA as involving an *eigendecomposition* of the covariance matrix, however, there are alternatives (which yield the same principle components) that may be preferrable in practice. Firstly, when the dimensionality of the data is high, the memory requirements of storing the covariance matrix can grow to be very large. In these cases, variants of the *Singular Value Decomposition* are preferred as they bypass the need to compute the covariance matrix (See the svd_solver section of [the scikit-learn docs on PCA](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html)). Another issue is the *scale* of the variables, since PCA gives us the optimal linear and orthogonal projection with respect to a *squared* reconstruction loss, if some variables have a much larger scale than others they will dominate the reconstruction loss, so PCA will overly favour those variables. For example, **TODO** 
+For more on PCA, including extensions of it, {cite:p}`a-pml1Book` is an excellent resource.
+
+
+<!-- ```{code-cell}
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import scale, normalize
+import matplotlib.pyplot as plt
+
+rng_gen = np.random.default_rng(32)
+
+N = 200
+P = 3
+rho = 0.5
+
+
+cov = np.array([[1.0, 0.8, 0.2],
+                [0.8, 1.0, 0.1],
+                [0.2, 0.1, 50.0]])
+X = rng_gen.multivariate_normal(np.zeros(3),cov,size=N)
+
+X=X-np.mean(X,axis=0)
+X_cov = np.cov(X,rowvar=False)
+eigenvalues,eigenvectors = np.linalg.eig(X_cov)
+eigenvectors = 5* eigenvectors / np.linalg.norm(eigenvectors, axis=1, keepdims=True)
+
+#Sort and print
+eval_and_evec = list(sorted(zip(eigenvalues, eigenvectors),key=lambda x: -x[0]))
+
+
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(111, projection='3d')
+
+# --- 3. Plot the Data ---
+# Create the scatter plot
+ax.scatter(X[:,0], X[:,1], X[:,2], c='b', marker='o')
+
+ax.quiver(0, 0, 0, eval_and_evec[0][1][0], eval_and_evec[0][1][1], eval_and_evec[0][1][2], color='r',label=r'$e_1$')
+# --- 4. Customize and Show Plot ---
+# Add labels for clarity
+ax.set_xlabel('X-axis')
+ax.set_ylabel('Y-axis')
+ax.set_zlabel('Z-axis')
+ax.set_title('3D Scatter Plot Example')
+
+# Display the plot
+plt.show()
+``` -->
 
 
 
+## The need for non-linear transformations
 In the next section we'll be taking a look at *AutoEncoders*. These are neural networks which also perform dimensionality reduction, however, their projection into a lower dimensional space can be *non-linear*. To motivate why this is useful we'll quickly look at an example where linear projections struggle.
 
 
@@ -108,3 +160,8 @@ plt.show()
 ```
 
 Hopefully this convinces you that *non-linear* transformations can indeed be very useful!
+
+```{bibliography}
+:filter: docname in docnames
+:keyprefix: a-
+```
