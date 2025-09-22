@@ -69,3 +69,4 @@ parse:
     # including those that are enabled by default!
     - dollarmath
     - amsmath
+    - substitution
