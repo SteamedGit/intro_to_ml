@@ -15,6 +15,13 @@ kernelspec:
 ```{math}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\var}{\mathrm{Var}}
+\newcommand{\xvec}{\mathbf{x}}
+\newcommand{\zvec}{\mathbf{z}}
+\newcommand{\uvec}{\mathbf{u}}
+\newcommand{\evec}{\mathbf{e}}
+\DeclareMathOperator*{\exptop}{\mathbb{E}}
+\newcommand{\exptx}{\exptop_{\xvec}}
 ```
 
 
@@ -47,7 +54,16 @@ plt.show()
 It is important to center your data (subtract the mean) to maintain the correctness of the PCA algorithm! **(TODO: Why)**
 ```
 
-If we only consider the directions of the $x$-axis and $y$-axis, clearly the data varies more along the $y$-axis. Therefore, a projection onto the $y$-axis would better preserve the data! Thankfully, we are not only limited to these two directions. The widget below allows you try different directions to project the data onto by varying the angle of the projection line from the $x$-axis. Try to find the best projection line!
+If we only consider the directions of the $x$-axis and $y$-axis, clearly the data varies more along the $y$-axis. Therefore, a projection onto the $y$-axis would better preserve the data! Thankfully, we are not only limited to these two directions. The widget below allows you try different directions to project the data onto by varying the angle of the projection line from the $x$-axis. 
+
+```{admonition} Exercise
+:class: seealso
+
+Try to find the best projection line!
+
+```
+
+
 
 ```{code-cell}
 :tags: [remove-input]
@@ -172,18 +188,27 @@ chart = original_points + connecting_lines + projected_points + projection_line 
 chart
 ```
 
+````{margin}
+```{math}
+\begin{align}
+&\text{For our purposes, }\\
+&\exptx[\dots]=\frac{1}{N}\sum_{i=1}^{N}\dots
+\end{align}
+```
+````
+
 ````{admonition} Mathematical connection between the loss and the variance
 :class: tip
 
 What you've (hopefully) noticed is that higher variance in the projected data corresponds to lower reconstruction loss! This is why we choose project our data onto the directions with highest variance. Below we'll give a formal explanation for why this is the case:
 
-Assume that our data is centered. Let $W$ be our *orthogonal* $D\times L$ projection matrix.
+Assume that our data is centered. Let $W$ be our $D\times L$ projection matrix with *orthogonal* columns.
 
-Then $\expt[W^Tx]=W^T\expt[x]=0$. Hence, the variance of the projected data is
+Then {math}`\exptx[W^T\xvec]=W^T\exptx[\xvec]=0`. Hence, the variance of the projected data is
 ```{math}
 \begin{align}
-\mathbb{V}[W^Tx]&=\expt[(W^Tx)^2]-(\expt[W^Tx])^2\\
-&=\expt[(W^Tx)^2]
+\var[W^T\xvec]&=\exptx\left[\left(W^T\xvec\right)^2\right]-\left(\exptx\left[W^T\xvec\right]\right)^2\\
+&=\exptx\left[\left(W^T\xvec\right)^2\right]
 \end{align}
 ```
 
@@ -191,11 +216,11 @@ Next, consider the reconstruction loss
 
 ```{math}
 \begin{align}
-\mathcal{L}(W)&=\expt\left[(x-WW^T)^2\right]\\
-&=\expt\left[x^Tx - 2x^TWW^Tx + x^T W W^T W W^Tx \right]\\
-&=\expt\left[x^Tx - 2x^TWW^Tx + x^T W W^Tx \right]\,\text{since } W \text{ is orthogonal } W^TW=\mathbf{I}\\
-&=\expt[x^Tx - x^T W W^T x]\\
-&=\expt[x^Tx] - \expt[(W^Tx)]\\
+\mathcal{L}(W)&=\exptx\left[(\xvec-WW^T\xvec)^2\right]\\
+&=\exptx\left[\xvec^T\xvec - 2\xvec^TWW^T\xvec + \xvec^T W W^T W W^T\xvec \right]\\
+&=\exptx\left[\xvec^T\xvec - 2\xvec^TWW^T\xvec + \xvec^T W W^T\xvec \right]\,\text{since } W^TW=\mathbf{I}\\
+&=\exptx[\xvec^T\xvec - \xvec^T W W^T \xvec]\\
+&=\exptx[\xvec^T\xvec] - \exptx[(W^T\xvec)^2]\\
 \end{align}
 ```
 
@@ -204,13 +229,13 @@ Hence,
 ```{math}
 
 \begin{align}
-\argmax_{W}\,\mathbb{V}[W^Tx]&=\argmax_{W}\,-\mathcal{L}(W)+\expt[x^Tx]\\
+\argmax_{W}\,\var[W^T\xvec]&=\argmax_{W}\,-\mathcal{L}(W)+\exptx[\xvec^T\xvec]\\
 &=\argmax_{W}\,-\mathcal{L}(W)\\
 &=\argmin_{W}\,\mathcal{L}(W)
 \end{align}
 ```
 
-This means that if our projection matrix is orthogonal, maximising the variance of the projected data is equivalent to minimising the reconstruction loss.
+This means that if our projection is orthogonal, maximising the variance of the projected data is equivalent to minimising the reconstruction loss.
 ````
 
 So how do we algorithmically find those directions? Well, it turns out that the directions (or lines) of greatest variation are the *eigenvectors* of the (empirical) covariance matrix of our data! Therefore, PCA amounts to simply finding these eigenvectors and projecting onto (some) of them.
@@ -219,60 +244,69 @@ So how do we algorithmically find those directions? Well, it turns out that the 
 ````{admonition} Connections between the lines of greatest variation and their variance with the eigenvectors and their eigenvalues
 :class: tip
 
-Suppose that we center our data (subtract the mean) and project it down to 1D using a unit vector $u$. This projection is achieved by taking the dot product of $u$ with each data vector $x_i$. Suppose that our entire dataset $\mathcal{D}$ is contained within the matrix $X$ (entries arranged as columns). Then we can project the entire dataset with $u^TX$. The variance of the projected data is given by
+Continuing from $\var[W^T\xvec]=\exptx[(W^T\xvec)^2]$ we can obtain
 
 ```{math}
 \begin{align}
-\mathbb{V}\left[u^TX\right]&=\expt\left[(u^TX)^2\right]-\expt\left[u^TX\right]^2\\
-&=\expt\left[(u^TX)^2\right]-0\text{, since the data is centered}\\
-&=\expt\left[(u^TX)(u^TX)\right]\\
-&=\expt\left[u^T(XX^T)u\right]\\
-&=u^T\expt\left[(XX^T)\right]u\\
-&=u^T\hat{\Sigma}u\text{, by the definition of the covariance matrix for data with mean zero}\\
+\var[W^T\xvec]&=\exptx[(W^T\xvec)^2]\\
+&=\exptx[\xvec^TW W^T \xvec]\\
+&=\exptx\left[\sum_{l=1}^{L}\xvec^{T}\uvec_{l}\uvec_{l}^T\xvec \right]\text{ where } \uvec_{l} \text{ is the } l^{\text{th}} \text{ column of } W\\ 
+&=\sum_{l=1}^{L}\exptx\left[\xvec^{T}\uvec_{l}\uvec_{l}^T\xvec \right]
 \end{align}
 ```
-Therefore, to maximise the variance of the projected data we should find the $u$ that maximises $u^T\hat{\Sigma}u$. However, this is a poorly defined objective, for any proposed solution vector $v$, the vector $2v$ will produce a higher variance! Furthermore, what we really care about is the direction of this vector and from a practical standpoint we don't want our projections to be arbitrarily large. So we will impose the constraint that $u$ should be a unit vector (i.e. $u^Tu=1$). 
+
+Since the latent space for our toy data will be 1D we'll focus on $L=1$ for now. This corresponds to finding a single vector $\uvec$ that maximises the variance of the projected data. Assume again that our data is centeted:
+
+```{math}
+\begin{align}
+\var[W^T\xvec]&=\exptx[\xvec^{T}\uvec\uvec^T\xvec]\\
+&=\exptx[\uvec^T\xvec\xvec^T\uvec]\\
+&=\uvec^T\exptx[\xvec\xvec^T]\uvec\\
+&=\uvec^T\hat{\Sigma}\uvec \text{, by the definition of the covariance matrix for data with mean zero}
+\end{align}
+```
+Therefore, to maximise the variance of the projected data we should find the $\uvec$ that maximises $\uvec^T\hat{\Sigma}\uvec$. However, this is a poorly defined objective, for any proposed solution vector $\mathbf{v}$, the vector $2\mathbf{v}$ will produce a higher variance! Furthermore, what we really care about is the direction of this vector and from a practical standpoint we don't want our projections to be arbitrarily large. So we will impose the constraint that $\uvec$ should be a unit vector (i.e. $\uvec^T\uvec=1$). 
 
 This is a constrained optimisation problem:
 ```{math}
-\argmax_{u, \Vert u\Vert=1}\; u^T\hat{\Sigma}u
+\argmax_{\uvec, \Vert \uvec\Vert=1}\; \uvec^T\hat{\Sigma}\uvec
 ```
-Let $f(u)=u^T\hat{\Sigma}u$ and $g(u)=u^Tu-1$. Then $\nabla_u f(u)=2\hat{\Sigma}u$ and $\nabla_u g(u)=2u$. Hence, both of these functions are *continuously differentiable*. This suggests that we can use the method of Lagrange Multipliers to find candidate solutions for $u$. Furthermore, since $\nabla_u g(u) \neq 0$ for all $u$ satisfying $u^Tu=1$, the method of Lagrange Multipliers will find **all** the candidate solutions to the problem.
+Let $f(\uvec)=\uvec^T\hat{\Sigma}\uvec$ and $g(\uvec)=\uvec^T\uvec-1$. Then $\nabla_{\uvec} f(\uvec)=2\hat{\Sigma}\uvec$ and $\nabla_{\uvec} g(\uvec)=2\uvec$. Hence, both of these functions are *continuously differentiable*. This suggests that we can use the method of Lagrange Multipliers to find candidate solutions for $\uvec$. Furthermore, since $\nabla_{\uvec} g(\uvec) \neq 0$ for all $\uvec$ satisfying $\uvec^T\uvec=1$, the method of Lagrange Multipliers will find **all** the candidate solutions to the problem.
 
 We define the Lagrangian function $L$ as 
 
 ```{math}
 \begin{align}
-&L(u,\phi) = u^T\hat{\Sigma}u - \phi(u^Tu-1)\\
+&L(\uvec,\phi) = \uvec^T\hat{\Sigma}\uvec - \phi(\uvec^T\uvec-1)\\
 &\text{where } \phi \in \mathbb{R}
 \end{align}
 ```
-In order to find the candidate solutions we must solve the equations $\nabla_{u}L=0$ and $\nabla_{\phi}L=0$.
+In order to find the candidate solutions we must solve the equations $\nabla_{\uvec}L=0$ and $\nabla_{\phi}L=0$.
 
 First, we compute the gradients
 ```{math}
 \begin{align}
-&\nabla_{u}L=2\hat{\Sigma}u-2\phi u \\
-&\nabla_{\phi}L=1-u^Tu
+&\nabla_{\uvec}L=2\hat{\Sigma}\uvec-2\phi\uvec \\
+&\nabla_{\phi}L=1-\uvec^T\uvec
 \end{align}
 ```
 
-Setting $\nabla_{u}L=0$, we obtain:
+Setting $\nabla_{\uvec}L=0$, we obtain:
 ```{math}
 \begin{align}
-&2\hat{\Sigma}u - 2\phi u =0\\
-&\hat{\Sigma}u = \phi u
+&2\hat{\Sigma}\uvec - 2\phi \uvec =0\\
+&\hat{\Sigma}\uvec = \phi \uvec
 \end{align}
 ```
 This is precisely the definition for an eigenvector of $\hat{\Sigma}$ with eigenvalue $\phi$! Therefore our system of equations is satisfied by *unit* eigenvectors of $\hat{\Sigma}$. So the unit vector which maximises the variance of the projected data (or equivalently, minimises the loss) is amongst the unit eigenvectors of $\hat{\Sigma}$.
 
-So, which one maximises the variance? It turns out that we can connect the variance of the projected data to each eigenvector's eigenvalue. Assume that the projection vector is given by a unit eigenvector $e$, then:
+So, which one maximises the variance? It turns out that we can connect the variance of the projected data to each eigenvector's eigenvalue. Assume that the projection vector is given by a unit eigenvector $\evec$, then:
 
 ```{math}
 \begin{align}
-\mathbb{V}\left[e^TX\right]&=e^T\hat{\Sigma}e\\
-&= e^T\lambda e\text{, where } \lambda \text{ is } e\text{'s eigenvalue}\\
-&=\lambda(e^Te)\\
+\var\left[\evec^T\xvec\right]&=\evec^T\hat{\Sigma}\evec\\
+&= \evec^T\lambda \evec\text{, where } \lambda \text{ is } \evec\text{'s eigenvalue}\\
+&=\lambda(\evec^T\evec)\\
 &=\lambda
 \end{align}
 ```
@@ -305,22 +339,39 @@ $$
 $$
 
 
-```{margin}
-Try to find the eigenvalues and eigenvectors for our example by hand! It's manageable for a small $2\times 2$ matrix
+
+
+```{admonition} Exercise
+:class: seealso
+1.) Is there more than one *unit* eigenvector *per eigenvalue* and if so, how many are there?<br/>
+2.) Find the eigenvalues and *unit* eigenvectors for our toy example by hand. (Hint: When solving for the eigenvectors, the rows of the matrix should be multiples of each other)
+
 ```
 
-````{admonition} The unit eigenvectors and their eigenvalues
+````{admonition} Check your answers
 :class: tip, dropdown
 
+__Answer 1.__ Yes. There are exactly two unit eigenvectors per eigenvalue. They point in opposite directions along the same line.
 
+__Answer 2.__ 
 ```{math}
 \begin{align}
-&\bullet \lambda_1\approx 3.032 \text{ and } e_1\approx\begin{pmatrix}0.524\\0.852 \end{pmatrix}\\
-&\bullet \lambda_2\approx 0.231 \text{ and } e_2\approx\begin{pmatrix}-0.852\\0.524 \end{pmatrix}\\
+&\bullet \lambda_1\approx 3.032 \text{ and } e_1\approx\begin{pmatrix}0.524\\0.852 \end{pmatrix}\text{ or }\begin{pmatrix}-0.524\\-0.852 \end{pmatrix}\\
+&\bullet \lambda_2\approx 0.231 \text{ and } e_2\approx\begin{pmatrix}-0.852\\0.524 \end{pmatrix}\text{ or }\begin{pmatrix}0.852\\-0.524\end{pmatrix}
 \end{align}
 ```
 
+
+
 ````
+
+<!-- ````{admonition} The unit eigenvectors and their eigenvalues
+:class: tip, dropdown
+
+
+
+
+```` -->
 
 ```{code-cell}
 :tags: [remove-input]

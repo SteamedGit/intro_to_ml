@@ -16,7 +16,14 @@ kernelspec:
 
 
 # Principle Component Analysis (PCA)
-These next two methods are forms of *dimensionality reduction*, where we learn a lower-dimensional representation of our data. The lower dimensional space which we project our data into $\mathbb{R}^{L}$ is called a *latent* space and its elements are referred to as latent vectors.
+These next two algorithms are forms of *dimensionality reduction*, where we learn a lower-dimensional representation of our data. The lower dimensional space which we project our data into $\mathbb{R}^{L}$ is called a *latent* space and its elements are referred to as latent vectors.
+
+```{math}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\xvec}{\mathbf{x}}
+\newcommand{\zvec}{\mathbf{z}}
+```
 
 <!-- ```{code-cell}
 :tags: [remove-input]
@@ -249,19 +256,19 @@ plot += k3d.surface(
 plot.display()
 ```
 
-Principle Component Analysis (PCA) is a *nonparametric* form of dimensionality reduction where we *linearly* and *orthogonally* project the data $\mathcal{D}=\{x_n\mid1\leq n\leq N, x_n\in\mathbb{R}^{D}\}$ into a lower dimensional subspace $\mathcal{Z}$ ($\mathrm{dim}(\mathcal{Z})=L$) in such a way that the lower dimensional representation can be used to obtain a good reconstruction of the original data. This is achieved by finding the $L$ directions along which the data varies the most (the *principle components*) and projecting the data onto only these directions.
+Principle Component Analysis (PCA) is a *nonparametric* form of dimensionality reduction where we *linearly* and *orthogonally* project the data $\mathcal{D}=\{\xvec^{(i)}\mid1\leq i\leq N, \xvec^{(i)}\in\mathbb{R}^{D}\}$ into a lower dimensional subspace $\mathcal{Z}$ ($\mathrm{dim}(\mathcal{Z})=L$) in such a way that the lower dimensional representation can be used to obtain a good reconstruction of the original data. This is achieved by finding the $L$ directions along which the data varies the most (the *principle components*) and projecting the data onto only these directions.
 
 
-This projection is defined by a matrix $D\times L$ matrix $W$, the projection is given by $z=W^Tx$ and "unprojection" is given by $\hat{x}=Wz$. We measure the quality of our reconstruction by Mean-Squared Error:
+This projection is defined by a matrix $D\times L$ matrix $W$, the projection is given by $\zvec=W^T\xvec$ and "unprojection" is given by $\hat{\xvec}=W\zvec$. We measure the quality of our reconstruction by Mean-Squared Error:
 
 $$
-\mathcal{L}(W) = \frac{1}{N}\sum_{n=1}^{N}{\left\Vert x_n - W(W^Tx_n) \right\Vert}_{2}^2
+\mathcal{L}(W) = \frac{1}{N}\sum_{i=1}^{N}{\left\Vert \xvec^{(i)} - W(W^T\xvec^{(i)}) \right\Vert}_{2}^2
 $$
 
 This objective can be minimised by setting $W=U_L$, where $U_L$ contains the $L$ eigenvectors with the largest eigenvalues of the empirical covariance matrix of the data $\hat{\Sigma}$:
 
 $$
-\hat{\Sigma} = \frac{1}{N}\sum_{n=1}^N(x_n-\hat{x})(x_n-\hat{x})^T
+\hat{\Sigma} = \frac{1}{N}\sum_{i=1}^N(\xvec^{(i)}-\bar{\xvec})(x^{(i)}-\bar{\xvec})^T
 $$
 
 
@@ -272,6 +279,18 @@ In the above Figure, we can see an example of this; a 3D spiral has been project
 
 In the next section we will assume that you're comfortable with *eigenvalues* and *eigenvectors*. If you're feeling rusty try this [3Blue1Brown video](https://www.youtube.com/watch?v=PFDu9oVAE-g&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab&index=14).
 ```
+
+```{admonition} Exercise
+:class: seealso
+1.) What does the orthogonality of the projection imply about the *principle components* that make up the projection matrix?<br/>
+2.) What does $W^TW$ equal?<br/>
+3.) Does this mean that the projection matrix is orthogonal?
+```
+
+````{admonition} Check your answers
+:class: tip, dropdown
+TODO
+````
 
 We'll now build up some intuition for why $U_L$ is the optimal orthogonal projection of the data. Let's do a walkthrough with some toy data.
 
